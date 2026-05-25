@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Progresso do Projeto</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: transparent;
+    padding: 1rem;
+  }
+  .card {
+    background: #12231A;
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div style="display: flex; gap: 24px; align-items: center; flex-wrap: wrap;">
+
+    <div style="position: relative; width: 180px; height: 180px; flex-shrink: 0;">
+      <canvas id="pizzaChart" width="180" height="180"></canvas>
+      <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;">
+        <div style="font-size: 28px; font-weight: 500; line-height: 1; color: #F7E4C4;" id="pct-label">100%</div>
+        <div style="font-size: 11px; color: #F7E4C4; opacity: 0.75; margin-top: 2px;">concluído</div>
+      </div>
+    </div>
+
+    <div style="flex: 1; min-width: 200px;">
+      <div id="phases" style="display: flex; flex-direction: column; gap: 12px;"></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const FILL  = '#DD480E';
+const EMPTY = 'rgba(247, 228, 196, 0.15)';
+const TEXT  = '#F7E4C4';
+
+const state = {
+  phases: [
+    { label: "Imersão de Marca",           pct: 100 },
+    { label: "1 Ciclo - Direção Criativa",  pct: 100 },
+    { label: "2 Ciclo - Identidade Visual", pct: 100 },
+    { label: "3 Ciclo - Desdobramentos",    pct: 100 },
+    { label: "Entrega Final",               pct: 100 },
+  ]
+};
+
+function overallPct() {
+  return Math.round(state.phases.reduce((s, p) => s + p.pct, 0) / state.phases.length);
+}
+
+let chart;
+
+function buildChart() {
+  const pct = overallPct();
+  const ctx = document.getElementById('pizzaChart').getContext('2d');
+  if (chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      datasets: [{
+        data: [pct, 100 - pct],
+        backgroundColor: [FILL, EMPTY],
+        borderWidth: 0,
+        borderRadius: 4,
+        spacing: 2
+      }]
+    },
+    options: {
+      responsive: false,
+      cutout: '72%',
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      animation: { duration: 400 }
+    }
+  });
+  document.getElementById('pct-label').textContent = pct + '%';
+}
+
+function buildPhases() {
+  const container = document.getElementById('phases');
+  container.innerHTML = '';
+  state.phases.forEach(p => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;';
+    row.innerHTML = `
+      <span style="font-size:12px;color:${TEXT};width:165px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${p.label}">${p.label}</span>
+      <div style="flex:1;height:6px;background:rgba(247,228,196,0.15);border-radius:4px;overflow:hidden;">
+        <div style="width:${p.pct}%;height:100%;background:${FILL};border-radius:4px;transition:width .4s;"></div>
+      </div>
+      <span style="font-size:12px;font-weight:500;color:${TEXT};width:32px;text-align:right;">${p.pct}%</span>
+    `;
+    container.appendChild(row);
+  });
+}
+
+buildChart();
+buildPhases();
+</script>
+</body>
+</html>
